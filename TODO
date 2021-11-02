@@ -1,7 +1,14 @@
 Implement Check / CheckMate
 
+Implement FEN string (specify starting position)
+
+Ply-test (number of possible moves from a given position)
+
+Zobrist Hashing
+
 Implement all legal chess moves:
     - disable castling through check
+    - update castle mask when rook is captured
 
 Board evaluation
     - Make bias towards middle cells
