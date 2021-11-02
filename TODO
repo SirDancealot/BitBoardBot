@@ -1,0 +1,14 @@
+Implement Check / CheckMate
+
+Implement all legal chess moves:
+    - en passant
+    - castling
+    - promotion
+
+Board evaluation
+    - Get pure piece-value on board
+    - Make bias towards middle cells
+
+AI
+    - MIN-MAX
+        - w/ Alpha-Beta pruning
