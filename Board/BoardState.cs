@@ -14,7 +14,7 @@ namespace BitBoardBot.Board
     public class BitBoard {
         public SquareEnum LastSource { get; private set; } = SquareEnum.a1;
         public SquareEnum LastTarget { get; private set; } = SquareEnum.a1;
-        public bool[] canCastle { get; set; } = new bool[] { true, true };
+        public ulong CastleMask { get; private set; } = 0b0100_0100 << 56 | 0b0100_0100;
         public int MoveCount { get; private set; } = 0;
         public ulong[] pieceBB { get; private set; }
         public BitBoard() {
@@ -28,9 +28,8 @@ namespace BitBoardBot.Board
 
         public BitBoard MakeMove(Move move)
         {
-            LastSource = move.Source;
-            LastTarget = move.Target;
             ulong flipMask = BBPos[(int)move.Source] | BBPos[(int)move.Target];
+            int opponent = ((int)move.Color ^ 1);
 
             for (int i = 0; i < pieceBB.Length; i++)
             {
@@ -41,12 +40,27 @@ namespace BitBoardBot.Board
             pieceBB[(int)move.Color] ^= flipMask;
 
             //Fix other color
-            pieceBB[((int)move.Color) ^ 1] &= ~BBPos[(int)move.Target];
+            pieceBB[opponent] &= ~BBPos[(int)move.Target];
 
             //Fix piece
             pieceBB[(int)move.Piece] &= ~BBPos[(int)move.Source];
             pieceBB[(int)move.Piece] |= BBPos[(int)move.Target];
 
+            //Fix en passant
+            ulong passantMask = (
+                NoSo(BBPos[(int)LastSource], 2, 2) &
+                BBPos[(int)LastTarget] &
+                NoSo(BBPos[(int)move.Target]) &
+                EaWe(BBPos[(int)move.Source]) &
+                pieceBB[opponent + 2] &
+                South(pieceBB[((int)move.Color + 2)])
+            );
+
+            pieceBB[opponent] ^= passantMask; 
+            pieceBB[opponent + 2] ^= passantMask; 
+
+            LastSource = move.Source;
+            LastTarget = move.Target;
             MoveCount++;
             return this;
         }

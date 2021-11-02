@@ -60,6 +60,8 @@ namespace BitBoardBot.Board
             ulong _BBPos = BBPos[pos];
             ulong BBatk = BoardUtils.East(_BBPos) | BoardUtils.West(_BBPos);
             BBatk |= BoardUtils.North(_BBPos | BBatk) | BoardUtils.South(_BBPos | BBatk);
+            if (pos == 4 || pos == 60)
+                BBatk |= EaWe(_BBPos, 2, 2);
             KingAttacks[pos] = BBatk;
         }
 
@@ -181,7 +183,8 @@ namespace BitBoardBot.Board
 
             final |= ew & opponents;
 
-            ulong enemyPawns = NoSo(BB.pieceBB[(BB.MoveCount & 0b1) + 2]);
+
+            ulong enemyPawns = NoSo(BB.pieceBB[((BB.MoveCount & 0b1) ^ 1) + 2]);
             ulong passantMask = enemyPawns & NoSo(BBPos[(int)BB.LastSource]) & NoSo(BBPos[(int)BB.LastTarget]);
 
             final |= passantMask;
