@@ -101,6 +101,18 @@ namespace BitBoardBot.Board
         {
             return North(set) | South(set);
         }
+        public static ulong NoSo(ulong set, int nCount, int sCount)
+        {
+            return North(set, nCount) | South(set, sCount);
+        }
+        public static ulong EaWe(ulong set)
+        {
+            return East(set) | West(set);
+        }
+        public static ulong EaWe(ulong set, int eCount, int wCount)
+        {
+            return East(set, eCount) | West(set, wCount);
+        }
         public static ulong NoEa(ulong set, int nCount, int eCount)
         {
             return North(East(set, eCount), nCount);
