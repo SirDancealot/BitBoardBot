@@ -194,7 +194,14 @@ namespace BitBoardBot.Board
         public static ulong KingAttack(int pos, ulong emptyBoardAttackSet, BitBoard BB)
         {
             ulong ownPieces = BB.pieceBB[BB.MoveCount & 0b1];
-            return emptyBoardAttackSet & ~ownPieces;
+
+            ulong notCastleSet = emptyBoardAttackSet & ~ownPieces & ~StaticCastleMask;
+
+            //not blocked by own pieces for castling
+            ulong castleSet = emptyBoardAttackSet & BB.CastleMask & EaWe(notCastleSet) & ~ownPieces & East(~ownPieces);
+
+
+            return notCastleSet | castleSet;
         }
         public static ulong KnightAttack(int pos, ulong emptyBoardAttackSet, BitBoard BB)
         {

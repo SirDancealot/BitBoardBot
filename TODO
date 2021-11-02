@@ -1,12 +1,10 @@
 Implement Check / CheckMate
 
 Implement all legal chess moves:
-    - en passant
-    - castling
+    - disable castling through check
     - promotion
 
 Board evaluation
-    - Get pure piece-value on board
     - Make bias towards middle cells
 
 AI

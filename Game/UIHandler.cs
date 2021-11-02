@@ -22,7 +22,7 @@ namespace BitBoardBot.Game
                  BB.MakeMove(MoveGens[BB.MoveCount & 0b1].Invoke(BB));
                  Thread.Sleep(roundDelay);
                  Console.WriteLine(FormatBB());
-                 if (Math.Abs(BB.GetBoardValue()) > 200)
+                 if (Math.Abs(BB.GetBoardValue()) > 1000)
                     GameRunning = false;
             }
             Console.WriteLine("Game over\n" + ((BB.MoveCount & 0b1) != 0 ? "White" : "Black") + " Won");

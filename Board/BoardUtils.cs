@@ -9,6 +9,7 @@ namespace BitBoardBot.Board
         public static readonly ulong HFile = FileMask(7);
         public static readonly ulong Rank8 = 0xFFul << 56;
         public static readonly ulong Rank1 = 0xFFul;
+        public static readonly ulong StaticCastleMask = 0x4400_0000_0000_0044ul;
         public static readonly ulong Diagonal = 0x8040201008040201ul;
         public static readonly ulong AntiDiagonal = 0x0102040810204080ul;
         public static readonly ulong LightSquares = 0x55AA55AA55AA55AA;

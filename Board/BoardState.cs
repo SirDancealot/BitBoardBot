@@ -14,46 +14,65 @@ namespace BitBoardBot.Board
     public class BitBoard {
         public SquareEnum LastSource { get; private set; } = SquareEnum.a1;
         public SquareEnum LastTarget { get; private set; } = SquareEnum.a1;
-        public ulong CastleMask { get; private set; } = 0b0100_0100 << 56 | 0b0100_0100;
+        public ulong CastleMask { get; private set; } = 0x4400_0000_0000_0044ul;
         public int MoveCount { get; private set; } = 0;
         public ulong[] pieceBB { get; private set; }
         public BitBoard() {
             pieceBB = (ulong[])BoardUtils.BBStartPos.Clone();
         }
 
-        public BitBoard(ulong[] BBarr)
+        public BitBoard(ulong[] BBarr, ulong castleMask)
         {
             pieceBB = (ulong[])BBarr.Clone();
+            CastleMask = castleMask;
         }
 
         public BitBoard MakeMove(Move move)
         {
-            ulong flipMask = BBPos[(int)move.Source] | BBPos[(int)move.Target];
-            int opponent = ((int)move.Color ^ 1);
+            ulong sourcePos = BBPos[(int)move.Source];
+            ulong targetPos = BBPos[(int)move.Target];
+            ulong flipMask = sourcePos | targetPos;
+            int self = (int)move.Color;
+            int opponent = self ^ 1;
 
+            //Casteling (updating mask and moving rook)
+            ulong rookMove = sourcePos & (BBStartPos[(int)PieceCode.Rook]);
+            CastleMask &= ~(EaWe(rookMove, 2, 1));
+            ulong kingMove = sourcePos & (BBStartPos[(int)PieceCode.King]);
+            CastleMask &= ~(EaWe(kingMove, 2, 2));
+
+            ulong kingSource = pieceBB[(int)PieceCode.King] & BBPos[(int)move.Source];
+            ulong longCastle = West(kingSource, 2) & targetPos;
+            ulong shortCastle = East(kingSource, 2) & targetPos;
+            ulong rookMask = EaWe(longCastle, 1, 2) | EaWe(shortCastle, 1, 1);
+            pieceBB[(int)PieceCode.Rook] ^= rookMask;
+            pieceBB[self] ^= rookMask;
+
+            //delete any piece on target square
             for (int i = 0; i < pieceBB.Length; i++)
             {
-                pieceBB[i] &= ~(BBPos[(int)move.Target]);
+                pieceBB[i] &= ~(targetPos);
             }
 
-            //Fix own color
-            pieceBB[(int)move.Color] ^= flipMask;
+            //own color
+            pieceBB[self] ^= flipMask;
 
-            //Fix other color
-            pieceBB[opponent] &= ~BBPos[(int)move.Target];
+            //opponent color
+            pieceBB[opponent] &= ~targetPos;
 
-            //Fix piece
-            pieceBB[(int)move.Piece] &= ~BBPos[(int)move.Source];
-            pieceBB[(int)move.Piece] |= BBPos[(int)move.Target];
+            //move own piece
+            pieceBB[(int)move.Piece] ^= flipMask;
+            // pieceBB[(int)move.Piece] &= ~BBPos[(int)move.Source];
+            // pieceBB[(int)move.Piece] |= BBPos[(int)move.Target];
 
-            //Fix en passant
+            //en passant
             ulong passantMask = (
                 NoSo(BBPos[(int)LastSource], 2, 2) &
                 BBPos[(int)LastTarget] &
-                NoSo(BBPos[(int)move.Target]) &
-                EaWe(BBPos[(int)move.Source]) &
+                NoSo(targetPos) &
+                EaWe(sourcePos) &
                 pieceBB[opponent + 2] &
-                South(pieceBB[((int)move.Color + 2)])
+                South(pieceBB[self + 2])
             );
 
             pieceBB[opponent] ^= passantMask; 
@@ -81,14 +100,14 @@ namespace BitBoardBot.Board
             int wQueen = BitOperations.PopCount(pieceBB[(int)PieceCode.Queen] & pieceBB[(int)PieceCode.White]) - BitOperations.PopCount(pieceBB[(int)PieceCode.Queen] & pieceBB[(int)PieceCode.Black]);
             value += wQueen * 9;
             int wKing = BitOperations.PopCount(pieceBB[(int)PieceCode.King] & pieceBB[(int)PieceCode.White]) - BitOperations.PopCount(pieceBB[(int)PieceCode.King] & pieceBB[(int)PieceCode.Black]);
-            value += wKing * 1000;
+            value += wKing * 10000;
 
             return value;
         }
 
         public int MoveValue(Move move)
         {
-            BitBoard moveBB = new BitBoard(pieceBB);
+            BitBoard moveBB = new BitBoard(pieceBB, CastleMask);
             return moveBB.MakeMove(move).GetBoardValue();
         }
 
