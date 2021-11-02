@@ -19,8 +19,7 @@ namespace BitBoardBot.Engine
         {
             this.Color = Color;
             this.Piece = piece;
-            isPromoted = promoted == PieceCode.Knight || promoted == PieceCode.Bishop || promoted == PieceCode.Rook || promoted == PieceCode.Queen;
-            this.Promoted = isPromoted ? promoted : piece;
+            this.Promoted = promoted;
             this.Source = source;
             this.Target = target;
             value = BB.MoveValue(this);
@@ -30,58 +29,92 @@ namespace BitBoardBot.Engine
         {
             Color = ((PieceCode)(BB.MoveCount & 0b1));
             moveString = moveString.ToLower();
-            try
+
+            string _source = moveString.Substring(0, 2);
+            string _target = moveString.Substring(2, 2);
+            char promotedPiece = 'q';
+            if (moveString.Length > 4)
             {
-                string _source = moveString.Substring(0, 2);
-                string _target = moveString.Substring(2, 2);
-                string promotedPiece = "q";
-                if (moveString.Length > 4)
-                {
-                    promotedPiece = moveString.Substring(4, 1);
-                }
-
-                Source = (SquareEnum)Enum.Parse(typeof(SquareEnum),
-                                                _source);
-                if (!((BBPos[(int)Source] & BB.pieceBB[(int)Color]) != 0))
-                {
-                    Illegal = true;
-                    throw new Exception("Source Square is either not a piece, or not a pice owned by the current player");
-                }
-                Target = (SquareEnum)Enum.Parse(typeof(SquareEnum), _target);
-
-                foreach (PieceCode code in Enum.GetValues(typeof(PieceCode)))
-                {
-                    if (code == PieceCode.White || code == PieceCode.Black)
-                        continue;
-                    if ((BBPos[(int)Source] & BB.pieceBB[(int)code]) != 0)
-                    {
-                        Piece = code;
-                        break;
-                    }    
-                }
-
-                ulong ownPieces = BB.pieceBB[(int)Color];
-                ulong opponents = BB.pieceBB[((int)Color) ^ 1];
-
-                ulong sourceAttackSet = AttackSets.AttackByPieceType((int)Source, Piece, BB);
-                if (!((sourceAttackSet & BBPos[(int)Target]) != 0)) {
-                    Illegal = true;
-                    throw new Exception("Moving the source square to the target square would result in an illegal move");
-                }
-
-                if (isPromoted)
-                {
-                    Promoted = (PieceCode)Enum.Parse(typeof(PieceCode), promotedPiece);
-                }
-
-                value = BB.MoveValue(this);
+                isPromoted = true;
+                promotedPiece = moveString.Substring(4, 1)[0];
             }
-            catch (System.Exception)
+
+            Source = (SquareEnum)Enum.Parse(typeof(SquareEnum),
+                                            _source);
+            if (!((BBPos[(int)Source] & BB.pieceBB[(int)Color]) != 0))
             {
                 Illegal = true;
-                Console.WriteLine("The moved you entered is not in the correct format");
+                Console.WriteLine("Source Square is either not a piece, or not a pice owned by the current player");
                 return;
             }
+            Target = (SquareEnum)Enum.Parse(typeof(SquareEnum), _target);
+
+            foreach (PieceCode code in Enum.GetValues(typeof(PieceCode)))
+            {
+                if (code == PieceCode.White || code == PieceCode.Black)
+                    continue;
+                if ((BBPos[(int)Source] & BB.pieceBB[(int)code]) != 0)
+                {
+                    Piece = code;
+                    break;
+                }    
+            }
+            if (Piece == PieceCode.White)
+            {
+                Illegal = true;
+                Console.WriteLine("Cannot move an empty square");
+                return;
+            }
+
+            ulong ownPieces = BB.pieceBB[(int)Color];
+            ulong opponents = BB.pieceBB[((int)Color) ^ 1];
+
+            ulong sourceAttackSet = AttackSets.AttackByPieceType((int)Source, Piece, BB);
+            if (!((sourceAttackSet & BBPos[(int)Target]) != 0)) {
+                Illegal = true;
+                Console.WriteLine("Moving the source square to the target square would result in an illegal move");
+            }
+
+            bool pieceIsPawn = Piece == PieceCode.wPawn || Piece == PieceCode.bPawn;
+            bool moveToRank1or8 = Target > SquareEnum.h7 || Target < SquareEnum.a2;
+            if (isPromoted)
+            {
+                if (!pieceIsPawn || !(moveToRank1or8))
+                {
+                    Console.WriteLine("You cannot promote a piece with this move");
+                    Illegal = true;
+                    return;
+                }
+                switch (promotedPiece)
+                {
+                    case 'r':
+                        Promoted = PieceCode.Rook;
+                        break;
+                    case 'b':
+                        Promoted = PieceCode.Bishop;
+                        break;
+                    case 'n':
+                        Promoted = PieceCode.Knight;
+                        break;
+                    case 'q':
+                        Promoted = PieceCode.Queen;
+                        break;
+                    default:
+                        Promoted = Piece;
+                        break;
+                }
+            } else
+            {
+                Promoted = Piece;
+            }
+            if (pieceIsPawn && moveToRank1or8 && !isPromoted)
+            {
+                Illegal = true;
+                Console.WriteLine("You must choose a piece to promote to for this move");
+                return;
+            }
+
+            value = BB.MoveValue(this);
         }
 
         public int CompareTo(object obj)

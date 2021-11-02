@@ -78,6 +78,10 @@ namespace BitBoardBot.Board
             pieceBB[opponent] ^= passantMask; 
             pieceBB[opponent + 2] ^= passantMask; 
 
+            //Promote piece
+            pieceBB[(int)move.Piece] ^= targetPos;
+            pieceBB[(int)move.Promoted] ^= targetPos;
+
             LastSource = move.Source;
             LastTarget = move.Target;
             MoveCount++;
@@ -117,18 +121,29 @@ namespace BitBoardBot.Board
             int turn = MoveCount & 0b1;
             for (PieceCode c = PieceCode.wPawn; c <= PieceCode.King; c++)
             {
+                ulong pawnMask = Convert.ToUInt64(c != PieceCode.wPawn && c != PieceCode.bPawn) - 1;
                 ulong BB = pieceBB[(int)c] & pieceBB[turn];
                 for (ulong _BBPos = (BB & (ulong)(-(long)BB)); _BBPos != 0; _BBPos = (BB & (ulong)(-(long)BB)))
                 {
                     BB &= ~_BBPos;
                     int pos = Array.IndexOf(BBPos, _BBPos);
-                    ulong attackSet = AttackSets.AttackByPieceType(pos, c, /*pieceBB[turn ^ 1], pieceBB[turn]*/ this);
+                    ulong attackSet = AttackSets.AttackByPieceType(pos, c, this);
 
                     for (ulong attack = (attackSet & (ulong)(-(long)attackSet)); attackSet != 0; attack = (attackSet & (ulong)(-(long)attackSet)))
                     {
                         attackSet &= ~attack;
-                        int attackPos = Array.IndexOf(BBPos, attack);
-                        moves.Add(new Move((PieceCode)turn, c, (SquareEnum)pos, (SquareEnum)attackPos, this));
+                        int attackPos = BitOperations.Log2(attack);
+
+                        if ((attack & (Rank1 | Rank8) & pawnMask) != 0)
+                        {
+                            moves.Add(new Move((PieceCode)turn, c, (SquareEnum)pos, (SquareEnum)attackPos, this, PieceCode.Knight));
+                            moves.Add(new Move((PieceCode)turn, c, (SquareEnum)pos, (SquareEnum)attackPos, this, PieceCode.Bishop));
+                            moves.Add(new Move((PieceCode)turn, c, (SquareEnum)pos, (SquareEnum)attackPos, this, PieceCode.Rook));
+                            moves.Add(new Move((PieceCode)turn, c, (SquareEnum)pos, (SquareEnum)attackPos, this, PieceCode.Queen));
+                            continue;
+                        }
+
+                        moves.Add(new Move((PieceCode)turn, c, (SquareEnum)pos, (SquareEnum)attackPos, this, c));
                     }
 
                 }
