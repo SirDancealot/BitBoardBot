@@ -20,56 +20,13 @@ namespace BitBoardBot.Game
             Console.WriteLine(FormatBB());
             while (GameRunning)
             {
-                 BB.MakeMove(MoveGens[BB.MoveCount & 0b1].Invoke(BB));
+                 BB = BB.MakeMove(MoveGens[BB.MoveCount & 0b1].Invoke(BB));
                  Thread.Sleep(roundDelay);
                  Console.WriteLine(FormatBB());
                  if (Math.Abs(BB.GetBoardValue()) > 1000)
                     GameRunning = false;
             }
             Console.WriteLine("Game over\n" + ((BB.MoveCount & 0b1) != 0 ? "White" : "Black") + " Won");
-        }
-
-        private static void twoPlayers()
-        {
-            while (GameRunning)
-            {
-                Console.WriteLine(FormatBB());
-                Move move = Engine.Engine.PlayerInput(BB);
-                BB.MakeMove(move);
-            }
-            Console.WriteLine(FormatBB());
-        }
-
-        private static void twoAIs()
-        {
-            Console.WriteLine("using two random AIs");
-            Thread.Sleep(5000);
-            Console.WriteLine(FormatBB());
-            try
-            {
-                while (true)
-                {
-                    Thread.Sleep(5);
-                    Move move = Engine.Engine.RandomAI(BB);
-                    Console.WriteLine("Making move: " + move.ToString());
-                    BB.MakeMove(move);
-                    Console.WriteLine(FormatBB());
-                }
-            }
-            catch (System.Exception)
-            {
-                Console.WriteLine("Game over\n" + ((BB.MoveCount & 0b1) != 0 ? "White" : "Black") + " won in " + BB.MoveCount + " moves");
-            }
-        }
-
-        private static void playerWhite()
-        {
-            throw new NotImplementedException("AIs not implemented yet");
-        }
-
-        private static void playerBlack()
-        {
-            throw new NotImplementedException("AIs not implemented yet");
         }
 
         private static string FormatBB() 

@@ -2,8 +2,6 @@ Implement Check / CheckMate
 
 Ply-test (number of possible moves from a given position)
 
-Zobrist Hashing
-
 Implement all legal chess moves:
     - disable castling through check
 
@@ -15,3 +13,5 @@ Board evaluation
 AI
     - MIN-MAX
         - w/ Alpha-Beta pruning
+
+Zobrist Hashing (done, keeping the line to remember the name of my hashing)

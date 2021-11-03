@@ -14,6 +14,7 @@ namespace BitBoardBot.Board
     public class BitBoard {
         public SquareEnum LastSource { get; private set; } = SquareEnum.a1;
         public SquareEnum LastTarget { get; private set; } = SquareEnum.a1;
+        public ulong HashValue = 0;
         public ulong CastleMask { get; private set; } = 0x4400_0000_0000_0044ul;
         public int MoveCount { get; private set; } = 0;
         public ulong[] pieceBB { get; private set; }
@@ -128,6 +129,8 @@ namespace BitBoardBot.Board
             }
 
             MoveCount += 2*(int.Parse(FENParts[5]) - 1);
+
+            Hasher.Hash(this);
         }
 
         public BitBoard(ulong[] BBarr, ulong castleMask)
@@ -138,6 +141,13 @@ namespace BitBoardBot.Board
 
         public BitBoard MakeMove(Move move)
         {
+            BitBoard moveBB = Clone();
+            moveBB.HashValue = Hasher.Hash(this, move);
+            return MakeMoveOn(moveBB, move);
+        }
+
+        private BitBoard MakeMoveOn(BitBoard BB, Move move)
+        {
             ulong sourcePos = BBPos[(int)move.Source];
             ulong targetPos = BBPos[(int)move.Target];
             ulong flipMask = sourcePos | targetPos;
@@ -146,31 +156,31 @@ namespace BitBoardBot.Board
 
             //Casteling (updating mask and moving rook)
             ulong rookMove = (sourcePos | targetPos) & (BBStartPos[(int)PieceCode.Rook]);
-            CastleMask &= ~(EaWe(rookMove, 2, 1));
+            BB.CastleMask &= ~(EaWe(rookMove, 2, 1));
             ulong kingMove = sourcePos & (BBStartPos[(int)PieceCode.King]);
-            CastleMask &= ~(EaWe(kingMove, 2, 2));
+            BB.CastleMask &= ~(EaWe(kingMove, 2, 2));
 
-            ulong kingSource = pieceBB[(int)PieceCode.King] & BBPos[(int)move.Source];
+            ulong kingSource = BB.pieceBB[(int)PieceCode.King] & BBPos[(int)move.Source];
             ulong longCastle = West(kingSource, 2) & targetPos;
             ulong shortCastle = East(kingSource, 2) & targetPos;
             ulong rookMask = EaWe(longCastle, 1, 2) | EaWe(shortCastle, 1, 1);
-            pieceBB[(int)PieceCode.Rook] ^= rookMask;
-            pieceBB[self] ^= rookMask;
+            BB.pieceBB[(int)PieceCode.Rook] ^= rookMask;
+            BB.pieceBB[self] ^= rookMask;
 
             //delete any piece on target square
-            for (int i = 0; i < pieceBB.Length; i++)
+            for (int i = 0; i < BB.pieceBB.Length; i++)
             {
-                pieceBB[i] &= ~(targetPos);
+                BB.pieceBB[i] &= ~(targetPos);
             }
 
             //own color
-            pieceBB[self] ^= flipMask;
+            BB.pieceBB[self] ^= flipMask;
 
             //opponent color
-            pieceBB[opponent] &= ~targetPos;
+            BB.pieceBB[opponent] &= ~targetPos;
 
             //move own piece
-            pieceBB[(int)move.Piece] ^= flipMask;
+            BB.pieceBB[(int)move.Piece] ^= flipMask;
             // pieceBB[(int)move.Piece] &= ~BBPos[(int)move.Source];
             // pieceBB[(int)move.Piece] |= BBPos[(int)move.Target];
 
@@ -180,21 +190,21 @@ namespace BitBoardBot.Board
                 BBPos[(int)LastTarget] &
                 NoSo(targetPos) &
                 EaWe(sourcePos) &
-                pieceBB[opponent + 2] &
-                South(pieceBB[self + 2])
+                BB.pieceBB[opponent + 2] &
+                South(BB.pieceBB[self + 2])
             );
 
-            pieceBB[opponent] ^= passantMask; 
-            pieceBB[opponent + 2] ^= passantMask; 
+            BB.pieceBB[opponent] ^= passantMask; 
+            BB.pieceBB[opponent + 2] ^= passantMask; 
 
             //Promote piece
-            pieceBB[(int)move.Piece] ^= targetPos;
-            pieceBB[(int)move.Promoted] ^= targetPos;
+            BB.pieceBB[(int)move.Piece] ^= targetPos;
+            BB.pieceBB[(int)move.Promoted] ^= targetPos;
 
             LastSource = move.Source;
             LastTarget = move.Target;
-            MoveCount++;
-            return this;
+            BB.MoveCount++;
+            return BB;
         }
 
         ///White ahead = positive value, Black ahead = negative value
@@ -265,6 +275,13 @@ namespace BitBoardBot.Board
         public override string ToString()
         {
             return BoardUtils.BitBoardToString(pieceBB[(int)PieceCode.Black] | pieceBB[(int)PieceCode.White]);
+        }
+
+        public BitBoard Clone() 
+        {
+            BitBoard BB = new BitBoard(pieceBB, CastleMask);
+            BB.MoveCount = MoveCount;
+            return BB;
         }
 
     }
