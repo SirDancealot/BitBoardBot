@@ -36,7 +36,7 @@ namespace BitBoardBot.Board
             int opponent = self ^ 1;
 
             //Casteling (updating mask and moving rook)
-            ulong rookMove = sourcePos & (BBStartPos[(int)PieceCode.Rook]);
+            ulong rookMove = (sourcePos | targetPos) & (BBStartPos[(int)PieceCode.Rook]);
             CastleMask &= ~(EaWe(rookMove, 2, 1));
             ulong kingMove = sourcePos & (BBStartPos[(int)PieceCode.King]);
             CastleMask &= ~(EaWe(kingMove, 2, 2));

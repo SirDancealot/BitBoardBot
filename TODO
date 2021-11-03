@@ -8,10 +8,9 @@ Zobrist Hashing
 
 Implement all legal chess moves:
     - disable castling through check
-    - update castle mask when rook is captured
 
 Board evaluation
-    - Make bias towards middle cells
+    - Make individual piece bias towards different cells
 
 AI
     - MIN-MAX
