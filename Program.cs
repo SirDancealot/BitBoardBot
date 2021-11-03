@@ -14,10 +14,21 @@ namespace BitBoardBot
     {
         static void Main(string[] args)
         {
+            string FEN = null;
+
+            foreach (string s in args)
+            {
+                if (s.Split('/').Length == 8)
+                    FEN = s;
+            }
+
             BoardUtils.Init();
             AttackSets.Init();
 
-            UIHandler.StartGame(PlayerInput, PlayerInput, 0);
+            if (FEN != null)
+                UIHandler.StartGame(PlayerInput, PlayerInput, 0, FEN);
+            else
+                UIHandler.StartGame(PlayerInput, PlayerInput, 0);
         }
     }
 }

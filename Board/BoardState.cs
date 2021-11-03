@@ -21,6 +21,115 @@ namespace BitBoardBot.Board
             pieceBB = (ulong[])BoardUtils.BBStartPos.Clone();
         }
 
+        public BitBoard(string FEN)
+        {
+            pieceBB = new ulong[9];
+
+            CastleMask = 0ul;
+
+            string[] FENParts = FEN.Split(' ');
+
+            string[] rows = FENParts[0].Split("/");
+            for (int i = 0; i < rows.Length; i++)
+            {
+                string row = rows[i];
+                ulong head = 0x1ul << (8 * (7-i));
+                foreach (char c in row)
+                {
+                    char lowerCase = c;
+                    bool black = (int)c >= 97;
+                    if (black)
+                        lowerCase = (char)((int)c - 32);
+
+                    switch (lowerCase)
+                    {
+                        case 'R':
+                            pieceBB[(int)PieceCode.Rook] ^= head;
+                            pieceBB[black ? 1 : 0] ^= head;
+                            head <<= 1;
+                            break;
+                        case 'N':
+                            pieceBB[(int)PieceCode.Knight] ^= head;
+                            pieceBB[black ? 1 : 0] ^= head;
+                            head <<= 1;
+                            break;
+                        case 'B':
+                            pieceBB[(int)PieceCode.Bishop] ^= head;
+                            pieceBB[black ? 1 : 0] ^= head;
+                            head <<= 1;
+                            break;
+                        case 'Q':
+                            pieceBB[(int)PieceCode.Queen] ^= head;
+                            pieceBB[black ? 1 : 0] ^= head;
+                            head <<= 1;
+                            break;
+                        case 'K':
+                            pieceBB[(int)PieceCode.King] ^= head;
+                            pieceBB[black ? 1 : 0] ^= head;
+                            head <<= 1;
+                            break;
+                        case 'P':
+                            pieceBB[(int)PieceCode.wPawn + (black ? 1 : 0)] ^= head;
+                            pieceBB[black ? 1 : 0] ^= head;
+                            head <<= 1;
+                            break;
+                        default:
+                            int shift = int.Parse(lowerCase.ToString());
+                            head <<= shift;
+                            break;
+                    }
+                }
+            }
+
+            if (FENParts[1].ToLower().Equals("b"))
+                MoveCount++;
+            
+            if (!FENParts[2].Equals("-"))
+            {
+                foreach (char c in FENParts[2])
+                {
+                    switch (c)
+                    {
+                        case 'K':
+                            CastleMask |= (0x1ul << 6);
+                            break;
+                        case 'Q':
+                            CastleMask |= (0x1ul << 2);
+                            break;
+                        case 'k':
+                            CastleMask |= (0x1ul << 62);
+                            break;
+                        case 'q':
+                            CastleMask |= (0x1ul << 58);
+                            break;
+                    }
+                }
+            } else
+            {
+                CastleMask = 0x4400_0000_0000_0044ul;
+            }
+
+            if (FENParts[3].Equals("-"))
+            {
+                LastSource = SquareEnum.a1;
+                LastTarget = SquareEnum.a1;
+            } else 
+            {
+                SquareEnum passantSquare = (SquareEnum)Enum.Parse(typeof(SquareEnum), FENParts[3]);
+                if ((int)passantSquare < 24)
+                {
+                    LastSource = (SquareEnum)((int)passantSquare - 8);
+                    LastTarget = (SquareEnum)((int)passantSquare + 8);
+                } else
+                {
+                    LastTarget = (SquareEnum)((int)passantSquare - 8);
+                    LastSource = (SquareEnum)((int)passantSquare + 8);
+                }
+            }
+
+            MoveCount += 2*(int.Parse(FENParts[5]) - 1);
+        }
+
         public BitBoard(ulong[] BBarr, ulong castleMask)
         {
             pieceBB = (ulong[])BBarr.Clone();

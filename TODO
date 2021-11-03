@@ -1,13 +1,13 @@
 Implement Check / CheckMate
 
-Implement FEN string (specify starting position)
-
 Ply-test (number of possible moves from a given position)
 
 Zobrist Hashing
 
 Implement all legal chess moves:
     - disable castling through check
+
+Fifty-move-rule
 
 Board evaluation
     - Make individual piece bias towards different cells

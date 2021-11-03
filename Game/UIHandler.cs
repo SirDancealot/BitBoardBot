@@ -10,11 +10,12 @@ namespace BitBoardBot.Game
 {
     public static class UIHandler
     {
-        private static BitBoard BB = new BitBoard();
+        private static BitBoard BB;
         private static bool GameRunning = true;
 
-        public static void StartGame(Func<BitBoard, Move> MoveGen1, Func<BitBoard, Move> MoveGen2, int roundDelay) 
+        public static void StartGame(Func<BitBoard, Move> MoveGen1, Func<BitBoard, Move> MoveGen2, int roundDelay, string FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1") 
         {
+            BB = new BitBoard(FEN);
             Func<BitBoard, Move>[] MoveGens = new Func<BitBoard, Move>[] {MoveGen1, MoveGen2};
             Console.WriteLine(FormatBB());
             while (GameRunning)
