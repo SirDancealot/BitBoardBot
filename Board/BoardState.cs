@@ -16,7 +16,7 @@ namespace BitBoardBot.Board
         public SquareEnum LastTarget { get; private set; } = SquareEnum.a1;
         public ulong HashValue = 0;
         public ulong CastleMask { get; private set; } = 0x4400_0000_0000_0044ul;
-        public int MoveCount { get; private set; } = 0;
+        public int MoveCount { get; set; } = 0;
         public ulong[] pieceBB { get; private set; }
         public BitBoard() {
             pieceBB = (ulong[])BoardUtils.BBStartPos.Clone();
@@ -213,7 +213,7 @@ namespace BitBoardBot.Board
             int value = 0;
 
             int wPawns = BitOperations.PopCount(pieceBB[(int)PieceCode.wPawn]) - BitOperations.PopCount(pieceBB[(int)PieceCode.bPawn]);
-            value += wPawns * 1;
+            value += wPawns;
             int wKnights = BitOperations.PopCount(pieceBB[(int)PieceCode.Knight] & pieceBB[(int)PieceCode.White]) - BitOperations.PopCount(pieceBB[(int)PieceCode.Knight] & pieceBB[(int)PieceCode.Black]);
             value += wKnights * 3;
             int wBishops = BitOperations.PopCount(pieceBB[(int)PieceCode.Bishop] & pieceBB[(int)PieceCode.White]) - BitOperations.PopCount(pieceBB[(int)PieceCode.Bishop] & pieceBB[(int)PieceCode.Black]);
@@ -234,7 +234,21 @@ namespace BitBoardBot.Board
             return moveBB.MakeMove(move).GetBoardValue();
         }
 
-        public List<Move> GetAllLegalMoves() 
+        public List<Move> GetAllLegalMoves()
+        {
+            List<Move> pseudoLegal = GetAllPseudoLegalMoves();
+            List<Move> legalMoves = new List<Move>();
+
+            foreach (Move move in pseudoLegal)
+            {
+                if (AttackSets.CheckedByBitmask(MakeMoveOn(Clone(), move), (PieceCode)(MoveCount & 0b1)) == 0)
+                    legalMoves.Add(move);
+            }
+
+            return legalMoves;
+        }
+
+        public List<Move> GetAllPseudoLegalMoves() 
         {
             List<Move> moves = new List<Move>();
             int turn = MoveCount & 0b1;

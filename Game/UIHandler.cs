@@ -18,15 +18,31 @@ namespace BitBoardBot.Game
             BB = new BitBoard(FEN);
             Func<BitBoard, Move>[] MoveGens = new Func<BitBoard, Move>[] {MoveGen1, MoveGen2};
             Console.WriteLine(FormatBB());
+            bool whiteInCheck = false, blackInCheck = false, staleMate = false;
             while (GameRunning)
             {
-                 BB = BB.MakeMove(MoveGens[BB.MoveCount & 0b1].Invoke(BB));
-                 Thread.Sleep(roundDelay);
-                 Console.WriteLine(FormatBB());
-                 if (Math.Abs(BB.GetBoardValue()) > 1000)
+                Move moveToMake = MoveGens[BB.MoveCount & 0b1].Invoke(BB);
+                if (moveToMake == null)
+                {
+                    whiteInCheck = AttackSets.CheckedByBitmask(BB, PieceCode.White) != 0;
+                    blackInCheck = AttackSets.CheckedByBitmask(BB, PieceCode.Black) != 0;
+                    staleMate = !(whiteInCheck || blackInCheck);
+                    break;
+                }
+                BB = BB.MakeMove(moveToMake);
+                Thread.Sleep(roundDelay);
+                Console.WriteLine(FormatBB());
+                if (Math.Abs(BB.GetBoardValue()) > 1000)
                     GameRunning = false;
             }
-            Console.WriteLine("Game over\n" + ((BB.MoveCount & 0b1) != 0 ? "White" : "Black") + " Won");
+            if (staleMate)
+            {
+                Console.WriteLine("Stalemate at move " + BB.MoveCount);
+            } else
+            {
+                Console.WriteLine("Game over\n" + (blackInCheck ? "White" : "Black") + " Won in " + BB.MoveCount + " moves");
+            }
+
         }
 
         private static string FormatBB() 
@@ -34,10 +50,10 @@ namespace BitBoardBot.Game
             StringBuilder sb = new StringBuilder();
             ulong pieces = BB.pieceBB[(int)PieceCode.White] | BB.pieceBB[(int)PieceCode.Black];
 
-            sb.Append("  +-+-+-+-+-+-+-+-+\n");
+            sb.Append("  +---+---+---+---+---+---+---+---+\n");
             for (int y = 7; y >= 0; y--)
             {
-                sb.Append((1+y) + " |");
+                sb.Append((1+y) + " | ");
                 for(int x = 0; x < 8; x++) {
                     int bitPos = y * 8 + x;
                     ulong _BBpos = BBPos[bitPos];
@@ -58,15 +74,15 @@ namespace BitBoardBot.Game
                             pieceChar = 'n';
 
                         sb.Append((_BBpos & BB.pieceBB[(int)PieceCode.White]) != 0 ? (char)(((byte)pieceChar) - 32)  : pieceChar);
-                        sb.Append("|");
+                        sb.Append(" | ");
                     // } else 
                     // {
                     //     sb.Append(" |");
                     // }
                 }
-                sb.Append("\n  +-+-+-+-+-+-+-+-+\n");
+                sb.Append("\n  +---+---+---+---+---+---+---+---+\n");
             }
-            sb.Append("   A B C D E F G H \n");
+            sb.Append("    A   B   C   D   E   F   G   H  \n");
             return sb.ToString();
         }
     }

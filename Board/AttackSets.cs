@@ -58,11 +58,11 @@ namespace BitBoardBot.Board
         private static void CalcKingAttack(int pos)
         {
             ulong _BBPos = BBPos[pos];
-            ulong BBatk = BoardUtils.East(_BBPos) | BoardUtils.West(_BBPos);
-            BBatk |= BoardUtils.North(_BBPos | BBatk) | BoardUtils.South(_BBPos | BBatk);
+            ulong BBAtk = BoardUtils.East(_BBPos) | BoardUtils.West(_BBPos);
+            BBAtk |= BoardUtils.North(_BBPos | BBAtk) | BoardUtils.South(_BBPos | BBAtk);
             if (pos == 4 || pos == 60)
-                BBatk |= EaWe(_BBPos, 2, 2);
-            KingAttacks[pos] = BBatk;
+                BBAtk |= EaWe(_BBPos, 2, 2);
+            KingAttacks[pos] = BBAtk;
         }
 
         private static void CalcKnightAttack(int pos)
@@ -195,7 +195,7 @@ namespace BitBoardBot.Board
         {
             ulong ownPieces = BB.pieceBB[BB.MoveCount & 0b1];
 
-            ulong notCastleSet = emptyBoardAttackSet & ~ownPieces & ~StaticCastleMask;
+            ulong notCastleSet = emptyBoardAttackSet & ~ownPieces & ~(StaticCastleMask & EaWe(BBPos[pos], 2, 2));
 
             //not blocked by own pieces for castling
             ulong castleSet = emptyBoardAttackSet & BB.CastleMask & EaWe(notCastleSet) & ~ownPieces & East(~ownPieces);
@@ -225,6 +225,42 @@ namespace BitBoardBot.Board
         {
             ulong emptyAttackSet = AttacksByPieceType[(int)code][pos];
             return AttackSetFuncs[(int)code].Invoke(pos, emptyAttackSet, BB);
+        }
+
+        public static ulong CheckedByBitmask(BitBoard BB, PieceCode color)
+        {
+            int moveCount = BB.MoveCount;
+
+            BB.MoveCount = (int)color;
+
+            ulong ownColorMask = BB.pieceBB[(int)color];
+            ulong opponentColorMask = BB.pieceBB[(int)color ^ 1];
+
+            ulong kingBBPos = BB.pieceBB[(int)PieceCode.King] & BB.pieceBB[(int)color];
+            int kingPos = BitOperations.Log2(kingBBPos);
+
+            ulong opPawn, opKnight, opRQ, opBQ, opKing;
+
+            opPawn = BB.pieceBB[(int)PieceCode.wPawn + ((int)color ^ 1)];
+            opKnight = BB.pieceBB[(int)PieceCode.Knight] & opponentColorMask;
+            opKing = BB.pieceBB[(int)PieceCode.King] & opponentColorMask;
+            opRQ = BB.pieceBB[(int)PieceCode.Queen] & opponentColorMask;
+            opBQ = BB.pieceBB[(int)PieceCode.Queen] & opponentColorMask;
+            opRQ |= BB.pieceBB[(int)PieceCode.Rook] & opponentColorMask;
+            opBQ |= BB.pieceBB[(int)PieceCode.Bishop] & opponentColorMask;
+
+            ulong attackedBy = 0;
+
+            ulong pawnAttackMask = EaWe(NoSo(kingBBPos));
+
+            attackedBy |= AttackByPieceType(kingPos, (PieceCode)((int)PieceCode.wPawn | (int)color), BB) & opPawn & pawnAttackMask;
+            attackedBy |= AttackByPieceType(kingPos, PieceCode.Knight, BB) & opKnight;
+            attackedBy |= AttackByPieceType(kingPos, PieceCode.Bishop, BB) & opBQ;
+            attackedBy |= AttackByPieceType(kingPos, PieceCode.Rook, BB) & opRQ;
+            attackedBy |= AttackByPieceType(kingPos, PieceCode.King, BB) & opKing;
+
+            BB.MoveCount = moveCount;
+            return attackedBy;
         }
     }
 }

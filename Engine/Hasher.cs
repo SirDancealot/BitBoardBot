@@ -69,11 +69,12 @@ namespace BitBoardBot.Engine
             PieceCode targetColor = PieceCode.White;
             PieceCode targetType = PieceCode.bPawn;
 
+
             for (PieceCode c = PieceCode.wPawn; c <= PieceCode.King ; c++)
             {
                 ulong posTypeBit = (BB.pieceBB[(int)c] & BBPos[(int)move.Target]);
                 int isThisType = (int)(posTypeBit >> BitOperations.Log2(posTypeBit)); //0 if not this type, 1 if it is
-                targetType += (int)c * isThisType;
+                targetType += (((int)c - (int)PieceCode.bPawn) * isThisType);
                 targetColor = (PieceCode)(isThisType * opponent);
             }
 

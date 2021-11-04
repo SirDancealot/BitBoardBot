@@ -17,6 +17,9 @@ namespace BitBoardBot
         {
             string FEN = null;
 
+            Func<BitBoard, Move> moveGen1 = RandomAI;
+            Func<BitBoard, Move> moveGen2 = RandomAI;
+
             foreach (string s in args)
             {
                 if (s.Split('/').Length == 8)
@@ -28,9 +31,9 @@ namespace BitBoardBot
             Hasher.Init();
 
             if (FEN != null)
-                UIHandler.StartGame(PlayerInput, PlayerInput, 0, FEN);
+                UIHandler.StartGame(moveGen1, moveGen2, 0, FEN);
             else
-                UIHandler.StartGame(PlayerInput, PlayerInput, 0);
+                UIHandler.StartGame(moveGen1, moveGen2, 0);
         }
     }
 }

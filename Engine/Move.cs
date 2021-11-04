@@ -1,10 +1,11 @@
 using System;
+using System.Collections.Generic;
 using BitBoardBot.Board;
 using static BitBoardBot.Board.BoardUtils;
 
 namespace BitBoardBot.Engine
 {
-    public class Move : IComparable
+    public class Move : IComparable, IEquatable<Move>
     {
         public int value { get; private set; }
         public PieceCode Color { get; private set; }
@@ -25,7 +26,7 @@ namespace BitBoardBot.Engine
             value = BB.MoveValue(this);
         }
 
-        public Move(string moveString, BitBoard BB)
+        public Move(string moveString, BitBoard BB, List<Move> legalMoves)
         {
             Color = ((PieceCode)(BB.MoveCount & 0b1));
             moveString = moveString.ToLower();
@@ -113,6 +114,12 @@ namespace BitBoardBot.Engine
                 Console.WriteLine("You must choose a piece to promote to for this move");
                 return;
             }
+            if (!legalMoves.Contains(this))
+            {
+                Illegal = true;
+                Console.WriteLine("That is not a legal move");
+                return;
+            }
 
             value = BB.MoveValue(this);
         }
@@ -124,9 +131,27 @@ namespace BitBoardBot.Engine
             return this.value.CompareTo(otherMove.value);
         }
 
+        public override bool Equals(object obj)
+        {
+            Move oMove = obj as Move;
+            if (oMove == null)
+                return false;
+            return Color == oMove.Color && Piece == oMove.Piece && Promoted == oMove.Promoted && Source == oMove.Source && Target == oMove.Target;
+        }
+
         public override string ToString()
         {
             return Source.ToString() + Target.ToString() + (isPromoted ? Promoted.ToString() : "") + '\n';
+        }
+
+        public bool Equals(Move other)
+        {
+            return Equals((object)other);
+        }
+
+        public override int GetHashCode()
+        {
+            return (((((int)Color << 5) | (int)Piece) << 5 | (int)Promoted)) ^ ((int)Source ^ (int)Target);
         }
     }
 }

@@ -11,6 +11,8 @@ namespace BitBoardBot.Engine
         public static Move GreedyAI(BitBoard BB)
         {
             List<Move> moves = BB.GetAllLegalMoves();
+            if (moves.Count == 0)
+                return null;
             moves.Sort();
             if (moves[0].value == moves[moves.Count - 1].value)
                 return RandomAI(BB);
@@ -20,18 +22,24 @@ namespace BitBoardBot.Engine
         public static Move RandomAI(BitBoard BB)
         {
             List<Move> moves = BB.GetAllLegalMoves();
+            if (moves.Count == 0)
+                return null;
+
             int random = R.Next(moves.Count);
             return moves[random];
         }
 
         public static Move PlayerInput(BitBoard BB)
         {
+            List<Move> moves = BB.GetAllLegalMoves();
+            if (moves.Count == 0)
+                return null;
             bool whitesTurn = (BB.MoveCount % 2 == 0);
             Console.WriteLine("Player " + (whitesTurn ? "white " : "black ") + "enter your move in the format:\n(Source Square)(Target Square)<Promoted To q|r|b|n>");
             Move move;
             do {
                 string moveString = Console.ReadLine();
-                move = new Move(moveString, BB);
+                move = new Move(moveString, BB, moves);
             } while (move.Illegal);
             return move;
         }
