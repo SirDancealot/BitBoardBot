@@ -29,6 +29,11 @@ namespace BitBoardBot.Game
                     staleMate = !(whiteInCheck || blackInCheck);
                     break;
                 }
+                if (BB.FiftyMoveRule >= 100)
+                {
+                    staleMate = !(whiteInCheck || blackInCheck);
+                    break;
+                }
                 BB = BB.MakeMove(moveToMake);
                 Thread.Sleep(roundDelay);
                 Console.WriteLine(FormatBB());

@@ -17,6 +17,7 @@ namespace BitBoardBot.Board
         public ulong HashValue = 0;
         public ulong CastleMask { get; private set; } = 0x4400_0000_0000_0044ul;
         public int MoveCount { get; set; } = 0;
+        public int FiftyMoveRule { get; private set; } = 0;
         public ulong[] pieceBB { get; private set; }
         public BitBoard() {
             pieceBB = (ulong[])BoardUtils.BBStartPos.Clone();
@@ -148,11 +149,25 @@ namespace BitBoardBot.Board
 
         private BitBoard MakeMoveOn(BitBoard BB, Move move)
         {
+            BB.FiftyMoveRule++;
             ulong sourcePos = BBPos[(int)move.Source];
             ulong targetPos = BBPos[(int)move.Target];
             ulong flipMask = sourcePos | targetPos;
             int self = (int)move.Color;
             int opponent = self ^ 1;
+
+            //update fifty move rule
+            ulong capture = targetPos & BB.pieceBB[opponent];
+            capture >>= BitOperations.Log2(capture);
+            BB.FiftyMoveRule *= (int)(capture ^ 1);
+
+            ulong pawnMove = sourcePos & BB.pieceBB[(int)PieceCode.wPawn + self];
+            pawnMove >>= BitOperations.Log2(pawnMove);
+            BB.FiftyMoveRule *= (int)(pawnMove ^ 1);
+
+            ulong castleMove = sourcePos & EaWe(targetPos, 2, 2) & BB.pieceBB[(int)PieceCode.King];
+            castleMove >>= BitOperations.Log2(castleMove);
+            BB.FiftyMoveRule *= (int)(castleMove ^ 1);
 
             //Casteling (updating mask and moving rook)
             ulong rookMove = (sourcePos | targetPos) & (BBStartPos[(int)PieceCode.Rook]);
@@ -315,6 +330,7 @@ namespace BitBoardBot.Board
         {
             BitBoard BB = new BitBoard(pieceBB, CastleMask);
             BB.MoveCount = MoveCount;
+            BB.FiftyMoveRule = FiftyMoveRule;
             return BB;
         }
 

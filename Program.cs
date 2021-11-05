@@ -17,8 +17,8 @@ namespace BitBoardBot
         {
             string FEN = null;
 
-            Func<BitBoard, Move> moveGen1 = PlayerInput;
-            Func<BitBoard, Move> moveGen2 = PlayerInput;
+            Func<BitBoard, Move> moveGen1 = RandomAI;
+            Func<BitBoard, Move> moveGen2 = RandomAI;
 
             foreach (string s in args)
             {
