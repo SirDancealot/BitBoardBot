@@ -1,5 +1,7 @@
 Fifty-move-rule
 
+zobrist hashing for casteling
+
 Ply-test (number of possible moves from a given position)
 
 
