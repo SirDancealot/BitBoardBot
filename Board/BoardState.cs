@@ -259,7 +259,7 @@ namespace BitBoardBot.Board
                 for (ulong _BBPos = (BB & (ulong)(-(long)BB)); _BBPos != 0; _BBPos = (BB & (ulong)(-(long)BB)))
                 {
                     BB &= ~_BBPos;
-                    int pos = Array.IndexOf(BBPos, _BBPos);
+                    int pos = BitOperations.Log2(_BBPos);
                     ulong attackSet = AttackSets.AttackByPieceType(pos, c, this);
 
                     for (ulong attack = (attackSet & (ulong)(-(long)attackSet)); attackSet != 0; attack = (attackSet & (ulong)(-(long)attackSet)))
@@ -281,9 +281,29 @@ namespace BitBoardBot.Board
 
                 }
             }
-
-
             return moves;
+        }
+
+        public ulong AttackSet(PieceCode color)
+        {
+            int realMoveCount = MoveCount;
+            MoveCount = (int)color;
+            ulong attackSet = 0ul;
+
+            for (PieceCode code = PieceCode.wPawn; code < PieceCode.King; code++)
+            {
+                ulong BB = pieceBB[(int)code] & pieceBB[(int)color];
+                for (ulong _BBPos = (BB & (ulong)(-(long)BB)); _BBPos != 0; _BBPos = (BB & (ulong)(-(long)BB)))
+                {
+                    BB &= ~_BBPos;
+                    attackSet |= AttackSets.AttackByPieceType(BitOperations.Log2(_BBPos), code, this);
+                }
+            }
+
+            attackSet |= AttackSets.KingAttacks[BitOperations.Log2(pieceBB[(int)color] & pieceBB[(int)PieceCode.King])];
+
+            MoveCount = realMoveCount;
+            return attackSet;            
         }
 
         public override string ToString()

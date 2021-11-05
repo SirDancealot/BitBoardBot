@@ -200,8 +200,27 @@ namespace BitBoardBot.Board
             //not blocked by own pieces for castling
             ulong castleSet = emptyBoardAttackSet & BB.CastleMask & EaWe(notCastleSet) & ~ownPieces & East(~ownPieces);
 
+            //not in check for casteling
+            ulong opponentAttackSet = BB.AttackSet((PieceCode)((BB.MoveCount & 0b1) ^ 1));
+            ulong _BBPos = BBPos[pos];
+            
+            ulong longCastle = _BBPos | West(_BBPos);
+            longCastle |= West(longCastle);
+            
+            ulong shortCastle = _BBPos | East(_BBPos);
+            shortCastle |= East(shortCastle);
 
-            return notCastleSet | castleSet;
+            longCastle &= opponentAttackSet;
+            shortCastle &= opponentAttackSet;
+
+            longCastle |= West(longCastle);
+            longCastle |= West(longCastle);
+            shortCastle |= East(shortCastle);
+            shortCastle |= East(shortCastle);
+
+            ulong castleInCheckMask = ~(longCastle | shortCastle);
+
+            return notCastleSet | (castleSet & castleInCheckMask);
         }
         public static ulong KnightAttack(int pos, ulong emptyBoardAttackSet, BitBoard BB)
         {
