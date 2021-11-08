@@ -331,6 +331,8 @@ namespace BitBoardBot.Board
             BitBoard BB = new BitBoard(pieceBB, CastleMask);
             BB.MoveCount = MoveCount;
             BB.FiftyMoveRule = FiftyMoveRule;
+            BB.LastSource = LastSource;
+            BB.LastTarget = LastTarget;
             return BB;
         }
 

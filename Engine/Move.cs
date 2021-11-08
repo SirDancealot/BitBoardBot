@@ -141,7 +141,7 @@ namespace BitBoardBot.Engine
 
         public override string ToString()
         {
-            return Source.ToString() + Target.ToString() + (isPromoted ? Promoted.ToString() : "") + '\n';
+            return Source.ToString() + Target.ToString() + (isPromoted ? Promoted.ToString() : "");
         }
 
         public bool Equals(Move other)
