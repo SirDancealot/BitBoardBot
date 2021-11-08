@@ -69,6 +69,9 @@ namespace BitBoardBot.Engine
             PieceCode targetColor = PieceCode.White;
             PieceCode targetType = PieceCode.bPawn;
 
+            ulong castleMove = EaWe(BB.pieceBB[(int)move.Piece] & BB.pieceBB[(int)PieceCode.King] & BBPos[(int)move.Source], 2, 2) & BB.CastleMask & BBPos[(int)move.Target];
+            int isCastle = (int)(castleMove >> BitOperations.Log2(castleMove));
+            hashValue ^= ((ulong)isCastle * BB.CastleMask);
 
             for (PieceCode c = PieceCode.wPawn; c <= PieceCode.King ; c++)
             {
@@ -79,6 +82,13 @@ namespace BitBoardBot.Engine
             }
 
             hashValue ^= HashTable[HashIndex(targetColor, (PieceCode)targetType)][(int)move.Target];
+
+            //En passant
+            ulong EnPassantMove = (EaWe(BBPos[(int)move.Source]) & South(BBPos[(int)move.Target])) & BB.pieceBB[(int)PieceCode.wPawn + opponent] & South(~(BBPos[(int)move.Target] & BB.pieceBB[(int)PieceCode.wPawn + opponent]));
+            int isEnPassant = (int)(EnPassantMove >> BitOperations.Log2(EnPassantMove));
+
+            hashValue ^= HashTable[HashIndex((PieceCode)opponent, (PieceCode)((int)PieceCode.wPawn + opponent))][BitOperations.Log2(EnPassantMove)] * (ulong)isEnPassant;
+            hashValue ^= HashTable[HashIndex(PieceCode.White, PieceCode.bPawn)][BitOperations.Log2(EnPassantMove)] * (ulong)isEnPassant;
 
             return hashValue;
         }
