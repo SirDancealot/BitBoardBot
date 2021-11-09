@@ -17,7 +17,7 @@ namespace BitBoardBot.Game
         {
             BB = new BitBoard(FEN);
             Func<BitBoard, Move>[] MoveGens = new Func<BitBoard, Move>[] {MoveGen1, MoveGen2};
-            Console.WriteLine(FormatBB());
+            Console.WriteLine(FormatBB(BB));
             bool whiteInCheck = false, blackInCheck = false, staleMate = false;
             while (GameRunning)
             {
@@ -36,7 +36,7 @@ namespace BitBoardBot.Game
                 }
                 BB = BB.MakeMove(moveToMake);
                 Thread.Sleep(roundDelay);
-                Console.WriteLine(FormatBB());
+                Console.WriteLine(FormatBB(BB));
                 if (Math.Abs(BB.GetBoardValue()) > 1000)
                     GameRunning = false;
             }
@@ -50,10 +50,10 @@ namespace BitBoardBot.Game
 
         }
 
-        private static string FormatBB() 
+        public static string FormatBB(BitBoard _BB) 
         {
             StringBuilder sb = new StringBuilder();
-            ulong pieces = BB.pieceBB[(int)PieceCode.White] | BB.pieceBB[(int)PieceCode.Black];
+            ulong pieces = _BB.pieceBB[(int)PieceCode.White] | _BB.pieceBB[(int)PieceCode.Black];
 
             sb.Append("  +---+---+---+---+---+---+---+---+\n");
             for (int y = 7; y >= 0; y--)
@@ -65,20 +65,20 @@ namespace BitBoardBot.Game
                     // if ((pieces & _BBpos) != 0)
                     // {
                         char pieceChar = ' ';
-                        if ((_BBpos & BB.pieceBB[(int)PieceCode.King]) != 0)
+                        if ((_BBpos & _BB.pieceBB[(int)PieceCode.King]) != 0)
                             pieceChar = 'k';
-                        if (((_BBpos & BB.pieceBB[(int)PieceCode.wPawn]) | (_BBpos & BB.pieceBB[(int)PieceCode.bPawn])) != 0)
+                        if (((_BBpos & _BB.pieceBB[(int)PieceCode.wPawn]) | (_BBpos & _BB.pieceBB[(int)PieceCode.bPawn])) != 0)
                             pieceChar = 'p';
-                        if ((_BBpos & BB.pieceBB[(int)PieceCode.Queen]) != 0)
+                        if ((_BBpos & _BB.pieceBB[(int)PieceCode.Queen]) != 0)
                             pieceChar = 'q';
-                        if ((_BBpos & BB.pieceBB[(int)PieceCode.Rook]) != 0)
+                        if ((_BBpos & _BB.pieceBB[(int)PieceCode.Rook]) != 0)
                             pieceChar = 'r';
-                        if ((_BBpos & BB.pieceBB[(int)PieceCode.Bishop]) != 0)
+                        if ((_BBpos & _BB.pieceBB[(int)PieceCode.Bishop]) != 0)
                             pieceChar = 'b';
-                        if ((_BBpos & BB.pieceBB[(int)PieceCode.Knight]) != 0)
+                        if ((_BBpos & _BB.pieceBB[(int)PieceCode.Knight]) != 0)
                             pieceChar = 'n';
 
-                        sb.Append((_BBpos & BB.pieceBB[(int)PieceCode.White]) != 0 ? (char)(((byte)pieceChar) - 32)  : pieceChar);
+                        sb.Append((_BBpos & _BB.pieceBB[(int)PieceCode.White]) != 0 ? (char)(((byte)pieceChar) - 32)  : pieceChar);
                         sb.Append(" | ");
                     // } else 
                     // {

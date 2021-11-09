@@ -203,10 +203,10 @@ namespace BitBoardBot.Board
             ulong passantMask = (
                 NoSo(BBPos[(int)LastSource], 2, 2) &
                 BBPos[(int)LastTarget] &
-                NoSo(targetPos) &
                 EaWe(sourcePos) &
                 BB.pieceBB[opponent + 2] &
-                South(BB.pieceBB[self + 2])
+                NoSo(BB.pieceBB[self + 2]) &
+                NoSo(targetPos & BB.pieceBB[self + 2])
             );
 
             BB.pieceBB[opponent] ^= passantMask; 
@@ -216,8 +216,8 @@ namespace BitBoardBot.Board
             BB.pieceBB[(int)move.Piece] ^= targetPos;
             BB.pieceBB[(int)move.Promoted] ^= targetPos;
 
-            LastSource = move.Source;
-            LastTarget = move.Target;
+            BB.LastSource = move.Source;
+            BB.LastTarget = move.Target;
             BB.MoveCount++;
             return BB;
         }
@@ -245,7 +245,7 @@ namespace BitBoardBot.Board
 
         public int MoveValue(Move move)
         {
-            BitBoard moveBB = new BitBoard(pieceBB, CastleMask);
+            BitBoard moveBB = Clone();
             return moveBB.MakeMove(move).GetBoardValue();
         }
 
@@ -315,6 +315,9 @@ namespace BitBoardBot.Board
                 }
             }
 
+            attackSet |= EaWe(North(pieceBB[(int)PieceCode.wPawn] & pieceBB[(int)color]));
+            attackSet |= EaWe(South(pieceBB[(int)PieceCode.bPawn] & pieceBB[(int)color]));
+
             attackSet |= AttackSets.KingAttacks[BitOperations.Log2(pieceBB[(int)color] & pieceBB[(int)PieceCode.King])];
 
             MoveCount = realMoveCount;
@@ -331,8 +334,8 @@ namespace BitBoardBot.Board
             BitBoard BB = new BitBoard(pieceBB, CastleMask);
             BB.MoveCount = MoveCount;
             BB.FiftyMoveRule = FiftyMoveRule;
-            BB.LastSource = LastSource;
-            BB.LastTarget = LastTarget;
+            BB.LastSource = this.LastSource;
+            BB.LastTarget = this.LastTarget;
             return BB;
         }
 

@@ -23,6 +23,7 @@ namespace BitBoardBot.Engine
             this.Promoted = promoted;
             this.Source = source;
             this.Target = target;
+            isPromoted = piece != promoted;
             value = BB.MoveValue(this);
         }
 

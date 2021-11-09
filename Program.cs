@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Text;
 using BitBoardBot.Board;
+using BitBoardBot.Game;
+using BitBoardBot.Engine;
+using static BitBoardBot.Engine.Engine;
 using static BitBoardBot.Board.BoardUtils;
 using static BitBoardBot.Board.AttackSets;
-using BitBoardBot.Game;
-using System.Numerics;
-using System.Collections.Generic;
-using static BitBoardBot.Engine.Engine;
-using BitBoardBot.Engine;
 
 namespace BitBoardBot
 {
@@ -30,13 +27,6 @@ namespace BitBoardBot
             AttackSets.Init();
             Hasher.Init();
 
-            BitBoard BB = new BitBoard();
-            BB = BB.MakeMove(new Move("a2a4", BB, BB.GetAllLegalMoves()));
-            BB = BB.MakeMove(new Move("b7b5", BB, BB.GetAllLegalMoves()));
-            BB = BB.MakeMove(new Move("a4b5", BB, BB.GetAllLegalMoves()));
-            BB = BB.MakeMove(new Move("c7c5", BB, BB.GetAllLegalMoves()));
-
-            Console.WriteLine("\nNodes searched: " + Ply.PlyCount(BB, 1, true));
 
             if (FEN != null)
                 UIHandler.StartGame(moveGen1, moveGen2, 0, FEN);

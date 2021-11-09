@@ -1,7 +1,4 @@
-Fifty-move-rule
-
-Ply-test (number of possible moves from a given position)
-
+Three repeated board states
 
 Board evaluation
     - Make individual piece bias towards different cells
