@@ -26,7 +26,7 @@ namespace BitBoardBot.Engine
             return sum;
         }
 
-        private static ConcurrentQueue<Move> moveQueue = new ConcurrentQueue<Move>();
+        private static ConcurrentQueue<(Move, BitBoard, int)> moveQueue = new ConcurrentQueue<(Move, BitBoard, int)>();
         public static ulong PlyCountThreading(BitBoard BB, int Depth, bool first)
         {
             List<Move> moves = BB.GetAllLegalMoves();
@@ -37,35 +37,40 @@ namespace BitBoardBot.Engine
             {
                 Console.WriteLine("Taking smaller perft steps");
                 List<BitBoard> boards = new List<BitBoard>();
-                ulong sum = 0;
 
                 foreach (Move move in moves)
                 {
                     boards.Add(BB.MakeMove(move));
-                    ulong tmpSum = PlyCountThreading(BB.MakeMove(move), Depth - 1, false);
-                    if (first)
-                        Console.WriteLine(move + ": " + tmpSum);
-                    sum += tmpSum;
                 }
-                return sum;
+
+                foreach (BitBoard board in boards)
+                {
+                    List<Move> localMoves = localMoves = board.GetAllLegalMoves();
+                    foreach (Move move in localMoves)
+                    {
+                        moveQueue.Enqueue((move, board, Depth - 1));
+                    }
+                }
+            } else
+            {
+                foreach (Move move in moves)
+                {
+                    moveQueue.Enqueue((move, BB, Depth));
+                }
             }
 
-            foreach (Move move in moves)
-            {
-                moveQueue.Enqueue(move);
-            }
 
             ulong moveCountSum = 0;
 
             Action action = () => {
                 ulong localMoves = 0;
-                Move localMove;
-                while (moveQueue.TryDequeue(out localMove))
+                (Move, BitBoard, int) localData;
+                while (moveQueue.TryDequeue(out localData))
                 {
-                    BitBoard localBB = BB.MakeMove(localMove);
-                    ulong localBBMoves = PlyCount(localBB, Depth - 1, false);
+                    BitBoard localBB = localData.Item2.MakeMove(localData.Item1);
+                    ulong localBBMoves = PlyCount(localBB, localData.Item3 - 1, false);
                     if (first)
-                        Console.WriteLine(localMove.ToString() + ": " + localBBMoves);
+                        Console.WriteLine(localData.Item1.ToString() + ": " + localBBMoves);
                     localMoves += localBBMoves;
                 }
                 Interlocked.Add(ref moveCountSum, localMoves);
