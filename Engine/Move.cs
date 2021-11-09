@@ -7,7 +7,7 @@ namespace BitBoardBot.Engine
 {
     public class Move : IComparable, IEquatable<Move>
     {
-        public int value { get; private set; }
+        public int value { get; set; }
         public PieceCode Color { get; private set; }
         public PieceCode Piece { get; private set; }
         public PieceCode Promoted { get; private set; }
