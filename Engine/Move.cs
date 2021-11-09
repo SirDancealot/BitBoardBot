@@ -7,7 +7,8 @@ namespace BitBoardBot.Engine
 {
     public class Move : IComparable, IEquatable<Move>
     {
-        public int value { get; set; }
+        public int value { get; set; } = 0;
+        private int valueCalculated = 0;
         public PieceCode Color { get; private set; }
         public PieceCode Piece { get; private set; }
         public PieceCode Promoted { get; private set; }
@@ -23,8 +24,16 @@ namespace BitBoardBot.Engine
             this.Promoted = promoted;
             this.Source = source;
             this.Target = target;
-            isPromoted = piece != promoted;
+            isPromoted = (piece ^ promoted) != 0;
+        }
+
+        public int getValue(BitBoard BB)
+        {
+            if (valueCalculated != 0)
+                return value;
+            valueCalculated = 1;
             value = BB.MoveValue(this);
+            return value;
         }
 
         public Move(string moveString, BitBoard BB, List<Move> legalMoves)

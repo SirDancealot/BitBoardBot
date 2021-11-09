@@ -305,7 +305,7 @@ namespace BitBoardBot.Board
             MoveCount = (int)color;
             ulong attackSet = 0ul;
 
-            for (PieceCode code = PieceCode.wPawn; code < PieceCode.King; code++)
+            for (PieceCode code = PieceCode.Knight; code < PieceCode.King; code++)
             {
                 ulong BB = pieceBB[(int)code] & pieceBB[(int)color];
                 for (ulong _BBPos = (BB & (ulong)(-(long)BB)); _BBPos != 0; _BBPos = (BB & (ulong)(-(long)BB)))
