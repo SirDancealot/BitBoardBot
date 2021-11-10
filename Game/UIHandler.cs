@@ -16,6 +16,7 @@ namespace BitBoardBot.Game
         public static void StartGame(Func<BitBoard, Move> MoveGen1, Func<BitBoard, Move> MoveGen2, int roundDelay, string FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1") 
         {
             BB = new BitBoard(FEN);
+            Engine.Engine.Init(BB);
             Func<BitBoard, Move>[] MoveGens = new Func<BitBoard, Move>[] {MoveGen1, MoveGen2};
             Console.WriteLine(FormatBB(BB));
             bool whiteInCheck = false, blackInCheck = false, staleMate = false;

@@ -1,12 +1,21 @@
 using System;
 using System.Collections.Generic;
 using BitBoardBot.Board;
+using BitBoardBot.Graph.MinMax;
 
 namespace BitBoardBot.Engine
 {
     public static class Engine
     {
         private static Random R = new Random((int)(DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond));
+        private static bool init = false;
+        public static void Init(BitBoard BB)
+        {
+            if (init)
+                return;
+            init = true;
+            RootNode = new Node(BB);
+        }
 
         public static Move GreedyAI(BitBoard BB)
         {
@@ -16,7 +25,9 @@ namespace BitBoardBot.Engine
             moves.Sort();
             if (moves[0].value == moves[moves.Count - 1].value)
                 return RandomAI(BB);
-            return moves[(BB.MoveCount & 0b1) == 0 ? moves.Count - 1 : 0];
+            Move move = moves[(BB.MoveCount & 0b1) == 0 ? moves.Count - 1 : 0];
+            RootNode = RootNode.updatePosition(move);
+            return move;
         }
 
         public static Move RandomAI(BitBoard BB)
@@ -26,7 +37,9 @@ namespace BitBoardBot.Engine
                 return null;
 
             int random = R.Next(moves.Count);
-            return moves[random];
+            Move move = moves[random];
+            RootNode = RootNode.updatePosition(move);
+            return move;
         }
 
         public static Move PlayerInput(BitBoard BB)
@@ -41,7 +54,19 @@ namespace BitBoardBot.Engine
                 string moveString = Console.ReadLine();
                 move = new Move(moveString, BB, moves);
             } while (move.Illegal);
+            RootNode = RootNode.updatePosition(move);
             return move;
+        }
+
+        private static Node RootNode = null;
+        public static Move MiniMaxAI(BitBoard BB)
+        {
+            if (RootNode == null)
+                RootNode = new Node(BB);
+            (Node, Move) minmaxReturn = RootNode.MiniMax(4);
+            RootNode = minmaxReturn.Item1;
+            return minmaxReturn.Item2;
+            
         }
     }
 }
